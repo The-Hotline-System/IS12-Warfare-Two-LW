@@ -24,7 +24,7 @@
 
 	var/list/fragment_types = list(/obj/item/projectile/bullet/pellet/fragment = 1)
 	var/num_fragments = 72  //total number of fragments produced by the grenade
-	var/explosion_size = 2   //size of the center explosion
+	var/explosion_size = 2  //size of the center explosion
 
 	//The radius of the circle used to launch projectiles. Lower values mean less projectiles are used but if set too low gaps may appear in the spread pattern
 	var/spread_range = 7 //leave as is, for some reason setting this higher makes the spread pattern have gaps close to the epicenter
@@ -95,6 +95,36 @@
 
 	qdel(src)
 
+proc/explode_circle(var/atom/o, var/sev)
+	var/list/turfs = list()
+	for(var/turf/simulated/T in range(sev, o))
+		var/dist = sqrt((T.x - o.x)**2 + (T.y - o.y)**2)
+		if(dist <= sev && (dist / sev) <= rand())
+			turfs += T
+	return turfs
+
+/obj/mortar/debug
+	name = "Mortar"
+	desc = "You'll never see this it just explodes."
+
+/obj/mortar/debug/New()
+	..()
+
+	explosion(loc, 2,1,1,1, particles = TRUE, autosize = FALSE, sizeofboom = rand(1,3), large = TRUE, explosionsound = pick('sound/effects/mortarexplo1.ogg','sound/effects/mortarexplo2.ogg','sound/effects/mortarexplo3.ogg'), farexplosionsound = pick('sound/effects/farexplonewnew1.ogg','sound/effects/farexplonewnew2.ogg','sound/effects/farexplonewnew3.ogg'))
+	for(var/turf/simulated/floor/dirty/grass/T in explode_circle(loc, rand(3,4)))
+		T.ChangeTurf(/turf/simulated/floor/dirty/rock)
+		var/turf/simulated/floor/dirty/rock/R = T
+		R.update_nearby_icons()
+		R.overlays += image(icon='la_wr/icons/turf/lw_outdoors.dmi',icon_state="crater", dir=pick(GLOB.cardinal), layer = BASE_ABOVE_OBJ_LAYER, pixel_x = rand(-8,-9), pixel_y = rand(-8,-9))
+		for(var/obj/structure/s in T.contents)
+			s.ex_act(4)
+
+/*
+	if(istype(loc, /turf/simulated/floor/dirty/grass/))
+		var/turf/simulated/floor/dirty/grass/G = loc
+		G.explode_grass(2)
+	qdel(src)
+*/
 /obj/mortar/frag
 	name = "Mortar"
 	desc = "You'll never see this it just explodes."

@@ -115,6 +115,96 @@
 		icon_state = "log[rand(1,2)]"
 		..()
 
+/obj/structure/flora/rockspawner
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "rock3"
+
+/obj/structure/flora/rockspawner/New()
+	if(prob(50))
+		new /obj/structure/flora/rock/lw(loc)
+		qdel(src)
+		return
+	if(prob(50))
+		new /obj/structure/flora/rock/lw/med(loc)
+		qdel(src)
+		return
+	if(prob(50))
+		new /obj/structure/flora/rock/lw/heavy(loc)
+		qdel(src)
+		return
+	qdel(src)
+
+/obj/structure/flora/rock/lw // decor
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "rock1"
+
+/obj/structure/flora/rock/lw/med // blocks trench digging etc
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "rock2"
+
+/obj/structure/flora/rock/lw/heavy // blocks movement, but also bullets
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "rock3"
+	var/health = 100
+	var/destroychance = 0
+	density = TRUE
+
+/obj/structure/flora/rock/heavy/CanPass(atom/movable/mover, turf/target, height=0, air_group=0)
+	if(istype(mover, /obj/item/projectile))
+		var/obj/item/projectile/proj = mover
+
+		if(proj.firer && Adjacent(proj.firer))
+			return TRUE
+
+		if (get_dist(proj.starting, loc) <= 1)
+			return TRUE
+
+		return FALSE
+	..()
+
+/obj/structure/flora/rock/lw/heavy/bullet_act(var/obj/item/projectile/Proj)
+	..()
+	for(var/mob/living/carbon/human/H in loc)
+		H.bullet_act(Proj)
+	//visible_message("[Proj] hits the [src]!")
+	playsound(src, "hitwall", 50, TRUE)
+	health -= rand(1, 10)
+	if(health <= 0)
+		visible_message("<span class='danger'>The [src] crumbles!</span>")
+		qdel(src)
+
+/obj/structure/flora/rock/lw/heavy/ex_act(severity)
+	if(!prob(destroychance)) // 0% chance on first hit, increase it by 25% for each hit
+		destroychance += 25
+		return
+	if(severity)
+		qdel(src)
+
+/obj/structure/flora/rock/lw/New()
+	..()
+	dir = pick(GLOB.cardinal)
+	pixel_x = rand(-8,8)
+	pixel_y = rand(-8,8)
+
+/obj/structure/flora/rock/lw/ex_act(severity)
+	if(severity)
+		qdel(src)
+
+/obj/structure/flora/grass/lw
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "grass3"
+
+/obj/structure/flora/grass/lw/ex_act(severity)
+	. = ..()
+	if(severity)
+		qdel(src)
+
+/obj/structure/flora/grass/lw/New()
+	..()
+	icon_state = "grass[rand(1,3)]"
+	dir = pick(GLOB.cardinal)
+	pixel_x = rand(-8,8)
+	pixel_y = rand(-8,8)
 
 //grass
 /obj/structure/flora/grass
@@ -525,3 +615,60 @@
 	desc = "This is a decorative shrub. It's been trimmed into the shape of an apple."
 	icon_state = "applebush"
 
+/obj/structure/flora/tallgrass/
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "tallgrass_single"
+	var/add_mask = TRUE
+
+/obj/structure/flora/tallgrass/ex_act(severity)
+	. = ..()
+	if(severity)
+		qdel(src)
+
+/obj/structure/flora/tallgrass/attackby(obj/item/O, mob/user)
+	. = ..()
+	if(istype(O))
+		if(O.sharp || O.edge)
+			playsound(src, 'sound/effects/ash_chop.ogg', 50, TRUE)
+			user.visible_message("<span class='info'>[user] begins to cut away [src].</span>")
+			if(do_after(user,20))
+				if(src)
+					playsound(src, 'sound/effects/ash_cut.ogg', 50, TRUE)
+					user.visible_message("<span class='info'>[user] finishes cutting away [src].</span>")
+					qdel(src)
+
+			else
+				user.visible_message("<span class='info'>[user] stops cutting away [src].</span>")
+
+/obj/structure/flora/tallgrass/Crossed(AM as mob)
+	..()
+	if(istype(AM, /mob/living/carbon))
+		if(prob(75))
+			playsound(src, "foliage", 60, 1)
+		var/mob/living/carbon/human/M = AM
+		if(add_mask)
+			M.vis_contents += new /obj/effect/trench/mask/water
+			M.has_trench_overlay = TRUE
+
+		else if(!add_mask)
+			if(M.has_trench_overlay)
+				for(var/obj/effect/trench/mask/mask in M.vis_contents)
+					M.vis_contents -= mask
+					qdel(mask)
+				M.has_trench_overlay = FALSE
+
+/obj/structure/flora/tallgrass/Destroy()
+	for(var/mob/living/carbon/human/M in loc)
+		if(M.has_trench_overlay)
+			for(var/obj/effect/trench/mask/mask in M.vis_contents)
+				M.vis_contents -= mask
+				qdel(mask)
+	. = ..()
+
+/obj/structure/flora/tallgrass/Uncrossed(AM as mob)
+	if(ishuman(AM))
+		var/mob/living/carbon/human/M = AM
+		if(M.has_trench_overlay)
+			for(var/obj/effect/trench/mask/mask in M.vis_contents)
+				M.vis_contents -= mask
+				qdel(mask)

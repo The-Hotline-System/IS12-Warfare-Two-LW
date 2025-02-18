@@ -27,7 +27,7 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 /area/warfare/battlefield
 	name = "\improper Battlefield"
 	var/captured = null
-	turf_initializer = /decl/turf_initializer/oldfare
+	turf_initializer = /decl/turf_initializer/lwfare
 	var/can_pre_enter = FALSE
 	//forced_ambience = list('sound/effects/siegestorm.ogg')
 

@@ -54,6 +54,8 @@
 /turf/simulated/open/Initialize()
 	. = ..()
 	update()
+	if(locate(/obj/effect/lighting_dummy/daylight/) in src) // shitcode hacky fix, remind me later - LW edit
+		new /obj/effect/lighting_dummy/daylight/(below)
 
 /turf/simulated/open/proc/update()
 	plane = OPENSPACE_PLANE //+ (src.z * PLANE_DIFFERENCE)

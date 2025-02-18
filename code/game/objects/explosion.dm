@@ -156,9 +156,9 @@ proc/drop_mortar(turf/dropped, mortar)
 		if(mortar == "bflare")
 			new /obj/mortar/flare/blue(dropped_turf)
 			return
-		explosion(dropped_turf, 1,1,1,1, particles = TRUE, autosize = FALSE, sizeofboom = 1, large = TRUE, explosionsound = pick('sound/effects/mortarexplo1.ogg','sound/effects/mortarexplo2.ogg','sound/effects/mortarexplo3.ogg'), farexplosionsound = pick('sound/effects/farexplonewnew1.ogg','sound/effects/farexplonewnew2.ogg','sound/effects/farexplonewnew3.ogg'))
+		explosion(dropped_turf, 2,1,1,1, particles = TRUE, autosize = FALSE, sizeofboom = 1, large = TRUE, explosionsound = pick('sound/effects/mortarexplo1.ogg','sound/effects/mortarexplo2.ogg','sound/effects/mortarexplo3.ogg'), farexplosionsound = pick('sound/effects/farexplonewnew1.ogg','sound/effects/farexplonewnew2.ogg','sound/effects/farexplonewnew3.ogg'))
 		spawn(5)
-			dropped_turf.overlays += image(icon='icons/turf/crater64.dmi',icon_state="dirt_shell_alt", dir=pick(GLOB.cardinal), layer = BASE_ABOVE_OBJ_LAYER, pixel_x = rand(-14,-16), pixel_y = rand(-14,-16))
+			dropped_turf.overlays += image(icon='la_wr/icons/turf/lw_outdoors.dmi',icon_state="crater", dir=pick(GLOB.cardinal), layer = BASE_ABOVE_OBJ_LAYER, pixel_x = rand(-8,-9), pixel_y = rand(-8,-9))
 		if(mortar == "shrapnel")
 			new /obj/mortar/frag(dropped_turf)
 		if(mortar == "gas")
@@ -168,7 +168,7 @@ proc/drop_mortar(turf/dropped, mortar)
 
 /obj/effect/shadow
 	name = "Shadow"
-	icon = 'icons/effects/effects.dmi'
+	icon = 'la_wr/icons/effects/lw_effects.dmi'
 	icon_state = "target"
 	density = FALSE
 

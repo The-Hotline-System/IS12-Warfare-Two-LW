@@ -84,7 +84,7 @@ SUBSYSTEM_DEF(warfare)
 		T.ChangeTurf(/turf/simulated/floor/trench)
 	sound_to(world, sound('sound/ambience/distant_warfare.ogg', repeat = 1))
 	for(var/mob/living/carbon/human/H in GLOB.human_mob_list)
-		H.set_squad_huds()
+		//H.set_squad_huds()
 		H.set_team_huds()
 
 /datum/controller/subsystem/warfare/proc/check_completion()

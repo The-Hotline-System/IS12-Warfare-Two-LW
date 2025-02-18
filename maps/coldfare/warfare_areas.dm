@@ -28,7 +28,7 @@ GLOBAL_LIST_EMPTY(mortar_areas) // = list()
 	//forced_ambience = list('sound/ambience/cold_outside2.ogg' )
 	name = "\improper Battlefield"
 	var/captured = null
-	turf_initializer = /decl/turf_initializer/oldfare // /decl/turf_initializer/warfare
+	turf_initializer = /decl/turf_initializer/lwfare // /decl/turf_initializer/warfare
 	var/can_pre_enter = FALSE
 
 /area/warfare/battlefield/trench_section//So they can cross atop their trench section.

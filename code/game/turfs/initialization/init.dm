@@ -83,3 +83,35 @@
 		if(istype(T,/turf/simulated/floor/exoplanet/water/shallow))
 			return
 		new /obj/structure/landmine(T)
+
+/decl/turf_initializer/lwfare/InitializeTurf(var/turf/simulated/T)
+	if(T.density)
+		return
+
+	if(istype(T, /turf/simulated/floor/trench)  || istype(T, /turf/simulated/floor/exoplanet/water/shallow) || istype(T, /turf/simulated/open))
+		return
+
+	if(locate(/obj/structure/flora/tallgrass/) in T.contents)
+		return
+
+	//if(prob(1)) //Rats are lagging I'm pretty sure.
+	//	new /mob/living/simple_animal/hostile/retaliate/rat(T)
+
+	//else if(prob(10))
+	//	new /obj/structure/flora/ash(T)
+/*
+	else if(prob(12))
+		new /obj/structure/barbwire(T)
+
+	else if(prob(5))
+		new /obj/structure/anti_tank(T)
+
+	else if(prob(5))//Please no landmines under dirt mounds thank you.
+		// please no landmines on fucking water thank you
+		for(var/obj/structure/object in T.contents)
+			if(object)
+				return
+		if(istype(T,/turf/simulated/floor/exoplanet/water/shallow))
+			return
+		new /obj/structure/landmine(T)
+*/

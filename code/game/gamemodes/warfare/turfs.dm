@@ -10,7 +10,7 @@
 
 //Dirt!
 /turf/simulated/floor/dirty
-	name = "dirt" //"snowy dirt"
+	name = "dirt"//"dirt" //"snowy dirt"
 	//icon = 'icons/turf/snow.dmi'
 	//icon_state = "snow_3"
 	icon = 'icons/turf/dirt.dmi'
@@ -21,6 +21,7 @@
 	var/has_light = TRUE
 	var/can_generate_water = TRUE
 	var/can_be_dug = TRUE
+	var/spawnflora = TRUE
 
 /turf/simulated/floor/dirty/update_icon()
 	overlays.Cut()
@@ -38,6 +39,138 @@
 
 			overlays += dirt
 
+/turf/simulated/floor/dirty/grass
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "grassl"
+
+/turf/simulated/floor/dirty/grass/New()
+	..()
+	if(loc.type != /area/warfare/battlefield/no_mans_land) // no base puddles
+		return
+	if(!can_generate_water)//This type can't generate water so don't bother.
+		return
+	if(prob(1)) // puddle generation,  every turf has a probability to become a water tile, then it spreads itself out
+		var/list/waters = list() // list of already generated water tiles
+		ChangeTurf(/turf/simulated/floor/exoplanet/water/shallow)//This is actually just a mud tile, we spawn water with it to make it looks like it's water.
+		waters += src
+		for(var/p in list(50,25,10,3,1)) // run through probabilities, spreading water out
+			for(var/turf/water in waters)
+				for(var/turf/simulated/floor/possible_water in range(1, water))
+					if(prob(p) && !LAZYLEN(possible_water.contents) && !istype(possible_water, /turf/simulated/floor/exoplanet/water/shallow))
+						if(/obj/structure in possible_water)//If there's any objects here return.
+							return
+						if(istype(possible_water, /turf/simulated/floor/trench))//No trenches becoming water please.
+							return
+						if(istype(possible_water, /turf/simulated/floor/dirty/fake))//Do not override the fake hacky dirt turfs please.
+							return
+						possible_water.ChangeTurf(/turf/simulated/floor/exoplanet/water/shallow)
+						waters += possible_water
+	else if(prob(1)) // do tall grass instead :)
+		var/list/grass = list() // list of already generated water tiles
+		var/list/turfsholder = list()
+		var/tallgrass = new/obj/structure/flora/tallgrass/(src)
+		grass += tallgrass
+		turfsholder += src
+		for(var/p in list(50,25,10,3,1)) // run through probabilities, spreading water out
+			for(var/turf/T in turfsholder)
+				for(var/turf/simulated/floor/possible_grass in range(1, T))
+					if(prob(p) && !LAZYLEN(possible_grass.contents) && !istype(possible_grass, /turf/simulated/floor/exoplanet/water/shallow))
+						if(/obj/structure in possible_grass)//If there's any objects here return.
+							return
+						if(istype(possible_grass, /turf/simulated/floor/trench))//No trenches becoming water please.
+							return
+						if(istype(possible_grass, /turf/simulated/floor/dirty/fake))//Do not override the fake hacky dirt turfs please.
+							return
+						tallgrass = new/obj/structure/flora/tallgrass/(possible_grass)
+						turfsholder += possible_grass
+						grass += tallgrass
+	if(prob(1)) // dark grass...
+		var/list/waters = list() // list of already generated water tiles
+		ChangeTurf(/turf/simulated/floor/dirty/grass/alt)//This is actually just a mud tile, we spawn water with it to make it looks like it's water.
+		waters += src
+		for(var/p in list(50, 25,10,3,1)) // run through probabilities, spreading water out
+			for(var/turf/water in waters)
+				for(var/turf/simulated/floor/possible_water in range(1, water))
+					if(prob(p) && !LAZYLEN(possible_water.contents) && !istype(possible_water, /turf/simulated/floor/exoplanet/water/shallow) && !istype(possible_water, /turf/simulated/floor/dirty/grass/alt))
+						if(/obj/structure in possible_water)//If there's any objects here return.
+							return
+						if(istype(possible_water, /turf/simulated/floor/trench))//No trenches becoming water please.
+							return
+						if(istype(possible_water, /turf/simulated/floor/dirty/fake))//Do not override the fake hacky dirt turfs please.
+							return
+						possible_water.ChangeTurf(/turf/simulated/floor/dirty/grass/alt)
+						waters += possible_water
+
+/turf/simulated/floor/dirty/grass/ex_act(severity)
+	return
+
+/turf/simulated/floor/dirty/grass/update_icon()
+	return
+
+/turf/simulated/floor/dirty/grass/alt
+	icon_state = "grassd"
+
+/turf/simulated/floor/dirty/grass/alt/update_icon()
+	. = ..()
+	overlays.Cut()
+	for(var/direction in GLOB.cardinal)
+		var/turf/turf_to_check = get_step(src,direction)
+		if(istype(turf_to_check, /turf/simulated/floor/exoplanet/water/shallow) || !istype(turf_to_check, /turf/simulated))
+			continue
+		if(istype(turf_to_check, /turf/simulated/floor/dirty/grass) && !istype(turf_to_check, /turf/simulated/floor/dirty/grass/alt))
+			var/image/trim = image('la_wr/icons/turf/lw_outdoors.dmi', "grassl_outer", dir = direction)//turn(direction, 180))
+			trim.plane = src.plane
+			trim.layer = src.layer+2
+			overlays += trim
+
+/turf/simulated/floor/dirty/rock
+	icon = 'la_wr/icons/turf/lw_outdoors.dmi'
+	icon_state = "groundl"
+	spawnflora = FALSE
+
+/turf/simulated/floor/dirty/rock/ex_act(severity)
+	return
+
+/turf/simulated/floor/dirty/rock/update_icon()
+	. = ..()
+	overlays.Cut()
+	for(var/direction in GLOB.cardinal)
+		var/turf/turf_to_check = get_step(src,direction)
+		if(istype(turf_to_check, /turf/simulated/floor/exoplanet/water/shallow) || !istype(turf_to_check, /turf/simulated))
+			continue
+		if(istype(turf_to_check, /turf/simulated/floor/dirty/grass))
+			var/image/trim = image('la_wr/icons/turf/lw_outdoors.dmi', "grassl_outer", dir = direction)//turn(direction, 180))
+			trim.plane = src.plane
+			trim.layer = src.layer+2
+			overlays += trim
+
+/turf/simulated/floor/dirty/rock/Destroy()
+	update_nearby_icons()
+	. = ..()
+
+/turf/simulated/floor/dirty/rock/New()
+	..()
+	update_nearby_icons()
+
+/turf/simulated/floor/dirty/rock/proc/update_nearby_icons()
+	for(var/direction in GLOB.cardinal)
+		var/turf/T = get_step(src,direction)
+		T.update_icon()
+/*
+    for(var/direction in GLOB.alldirs)
+        var/turf/turf_to_check = get_step(src,direction)
+        if(istype(turf_to_check, /turf/simulated/floor/dirty/grass))
+			var/border_state = "grassl_inner"
+
+            var/translate_x = 0
+            var/translate_y = 0
+            I.dir = reverse_direction(direction)
+            if(istype(get_step(src,NORTH), /turf/simulated/floor/dirty/grass) && istype(get_step(src,WEST), /turf/simulated/floor/dirty/grass))  //Ugly.
+				border_state = "grassl_outer"
+			var/image/dirt = image('la_wr/icons/turf/lw_outdoors.dmi', borderstate, dir = gotdirection)
+
+			overlays += dirt
+*/
 /turf/simulated/floor/dirty/alt
 	name = "dirt" //"snowy dirt"
 	//icon = 'icons/turf/snow.dmi'
@@ -181,44 +314,25 @@
 		overlays.Cut()
 		vis_contents.Cut()
 		update_icon()
-	if(loc.type != /area/warfare/battlefield/no_mans_land) // no base puddles
-		return
-	if(!can_generate_water)//This type can't generate water so don't bother.
-		return
-	if(prob(1)) // puddle generation,  every turf has a probability to become a water tile, then it spreads itself out
-		var/list/waters = list() // list of already generated water tiles
-		ChangeTurf(/turf/simulated/floor/exoplanet/water/shallow)//This is actually just a mud tile, we spawn water with it to make it looks like it's water.
-		waters += src
-		for(var/p in list(50,25,10,3,1)) // run through probabilities, spreading water out
-			for(var/turf/water in waters)
-				for(var/turf/simulated/floor/possible_water in range(1, water))
-					if(prob(p) && !LAZYLEN(possible_water.contents) && !istype(possible_water, /turf/simulated/floor/exoplanet/water/shallow))
-						if(/obj/structure in possible_water)//If there's any objects here return.
-							return
-						if(istype(possible_water, /turf/simulated/floor/trench))//No trenches becoming water please.
-							return
-						if(istype(possible_water, /turf/simulated/floor/dirty/fake))//Do not override the fake hacky dirt turfs please.
-							return
-						possible_water.ChangeTurf(/turf/simulated/floor/exoplanet/water/shallow)
-						waters += possible_water
+
 /turf/simulated/floor/dirty/Initialize()
 	. = ..()
-	var/FUCKYOU
+	if(!spawnflora)
+		return
+	var/full
 	for(var/obj/structure/object in contents)
 		if(object)
-			FUCKYOU=TRUE
+			full=TRUE
 			return
-	if(prob(35))
-		icon_state = "dirt1"
-		dir = pick(GLOB.alldirs)
+	//if(prob(35))
+	//	icon_state = "dirt1"
+	//	dir = pick(GLOB.alldirs)
 
-	if(prob(45) && !density && !FUCKYOU)
+	if(prob(55) && !density && !full)
 		if(prob(85))
-			new /obj/structure/flora/wasteland/rock(src)
-		else if(prob(75))
-			new /obj/structure/flora/wasteland/misc(src)
+			new /obj/structure/flora/grass/lw(src)
 		else if(prob(65))
-			new /obj/structure/flora/wasteland/tree(src)
+			new /obj/structure/flora/rockspawner(src)
 
 /turf/simulated/floor/dirty/attackby(obj/O as obj, mob/living/user as mob)
 	if(istype(O, /obj/item/shovel))
@@ -445,16 +559,18 @@
 	overlays.Cut()
 	for(var/direction in GLOB.cardinal)
 		var/turf/turf_to_check = get_step(src,direction)
-		if(istype(turf_to_check, /turf/simulated/floor/exoplanet/water/shallow))
+		if(istype(turf_to_check, /turf/simulated/floor/exoplanet/water/shallow) || !istype(turf_to_check, /turf/simulated))
 			continue
+		var/state = "over_water1"
+		var/trimicon = 'icons/obj/warfare.dmi'
+		if(istype(turf_to_check, /turf/simulated/floor/dirty/grass))
+			trimicon = 'la_wr/icons/turf/lw_outdoors.dmi'
+			state = "grassl_outer"
+		var/image/water_side = image(trimicon, state, dir = direction)//turn(direction, 180))
+		water_side.plane = src.plane
+		water_side.layer = src.layer+2
 
-		else if(istype(turf_to_check, /turf/simulated))
-			var/image/water_side = image('icons/obj/warfare.dmi', "over_water1", dir = direction)//turn(direction, 180))
-			water_side.plane = src.plane
-			water_side.layer = src.layer+2
-			water_side.color = "#877a8b"
-
-			overlays += water_side
+		overlays += water_side
 		var/image/wave_overlay = image('icons/obj/warfare.dmi', "waves")
 		overlays += wave_overlay
 
